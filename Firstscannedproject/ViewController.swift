@@ -12,63 +12,103 @@ import ARKit
 class ViewController: UIViewController, ARSCNViewDelegate {
 
     @IBOutlet var sceneView: ARSCNView!
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Set the view's delegate
+        
+        sceneView.scene.background.contents = UIImage(named: "art.scnassets/8k_stars_milky_way.jpg")
+        
+        func pulsar(){
+            let spehere = SCNSphere(radius: 1.5)
+            let material = SCNMaterial()
+            material.diffuse.contents = UIImage(named: "art.scnassets/8k_sun.jpg")
+            spehere.materials = [material]
+            
+            material.emission.contents = UIColor.systemCyan
+            material.shininess = 20
+            
+            let materialNode = SCNNode()
+            materialNode.geometry = spehere
+            let rotateMaterial = SCNAction.rotateBy(x: 0, y: CGFloat(2 * Double.pi), z: 0, duration: 30)
+            let repeatForever = SCNAction.repeatForever(rotateMaterial)
+            materialNode.runAction(repeatForever)
+            
+            let staticNode = SCNNode()
+            staticNode.addChildNode(materialNode)
+            staticNode.position = SCNVector3(x: -20.5, y: -1.5, z: -0.9)
+            
+          // beam
+            let tube = SCNTube(innerRadius: 0.01, outerRadius: 0.15, height: 30)
+            let materialTube = SCNMaterial()
+            materialTube.diffuse.contents = UIColor.white
+            tube.materials = [materialTube]
+
+            let tubeNode = SCNNode(geometry: tube)
+            tubeNode.position = SCNVector3(x: -20.5, y: -1.5, z: -0.9)
+            
+            
+            //rotate beam
+            
+            let rotate = SCNAction.rotateBy(x: CGFloat(Double.pi), y: 0, z: 0, duration: 0.7)
+            let reapetForeverRotate = SCNAction.repeatForever(rotate)
+            tubeNode.runAction(reapetForeverRotate)
+
+            //
+        
+            sceneView.scene.rootNode.addChildNode(staticNode)
+            sceneView.scene.rootNode.addChildNode(tubeNode)
+            sceneView.automaticallyUpdatesLighting = true
+            
+            staticNode.filters = addBloom()
+            
+            tubeNode.filters = addBloom2()
+            
+        }
+        
+        //bloom lighting
+        func addBloom() -> [CIFilter]? {
+            let bloom = CIFilter(name: "CIBloom")!
+            bloom.setValue(70, forKey: "inputIntensity")
+            bloom.setValue(400, forKey: "inputRadius")
+            
+            return [bloom]
+        }
+        
+        func addBloom2() -> [CIFilter]? {
+            let bloom = CIFilter(name: "CIBloom")!
+            bloom.setValue(5, forKey: "inputIntensity")
+            bloom.setValue(20, forKey: "inputRadius")
+            
+            return [bloom]
+        }
+
         sceneView.delegate = self
         
-        // Show statistics such as fps and timing information
-        sceneView.showsStatistics = true
-        
-        // Create a new scene
-        let scene = SCNScene(named: "art.scnassets/ship.scn")!
-        
-        // Set the scene to the view
-        sceneView.scene = scene
+        //call the function
+        pulsar()
+   
     }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
-
-        // Run the view's session
-        sceneView.session.run(configuration)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Pause the view's session
-        sceneView.session.pause()
-    }
-
-    // MARK: - ARSCNViewDelegate
-    
-/*
-    // Override to create and configure nodes for anchors added to the view's session.
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
      
-        return node
-    }
-*/
-    
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
         
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            
+            // Create a session configuration
+            let configuration = ARWorldTrackingConfiguration()
+            
+            //OBject detection
+            
+            // Run the view's session
+            sceneView.session.run(configuration)
+        }
         
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
-    }
+        override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            
+            // Pause the view's session
+            sceneView.session.pause()
+        }
 }
+
